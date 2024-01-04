@@ -22,7 +22,7 @@ use yii\db\Transaction;
 use yii\helpers\Url;
 
 /**
- * This module provides integration with [Yii framework](http://www.yiiframework.com/) (2.0).
+ * This module provides integration with [Yii framework](https://www.yiiframework.com/) (2.0).
  *
  * It initializes the Yii framework in a test environment and provides actions
  * for functional testing.
@@ -126,7 +126,7 @@ use yii\helpers\Url;
  * ## Fixtures
  *
  * This module allows to use
- * [fixtures](http://www.yiiframework.com/doc-2.0/guide-test-fixtures.html)
+ * [fixtures](https://www.yiiframework.com/doc-2.0/guide-test-fixtures.html)
  * inside a test. There are two ways to do that. Fixtures can either be loaded
  * with the [haveFixtures](#haveFixtures) method inside a test:
  *
@@ -333,7 +333,9 @@ class Yii2 extends Framework implements ActiveRecord, MultiSession, PartedModule
 
         // load fixtures before db transaction
         if ($test instanceof \Codeception\Test\Cest) {
-            $this->loadFixtures($test->getTestClass());
+            $this->loadFixtures($test->getTestInstance());
+        } elseif ($test instanceof \Codeception\Test\TestCaseWrapper) {
+            $this->loadFixtures($test->getTestCase());
         } else {
             $this->loadFixtures($test);
         }
@@ -395,8 +397,7 @@ class Yii2 extends Framework implements ActiveRecord, MultiSession, PartedModule
 
     public function _failed(TestInterface $test, $fail)
     {
-        $log = $this->yiiLogger->getAndClearLog();
-        if (! empty($log)) {
+        if ($this->yiiLogger && $log = $this->yiiLogger->getAndClearLog()) {
             $test->getMetadata()->addReport('yii-log', $log);
         }
 
@@ -703,7 +704,7 @@ class Yii2 extends Framework implements ActiveRecord, MultiSession, PartedModule
      * $I->amOnPage('/register');
      * ```
      *
-     * @param string|array $page the URI or route in array format
+     * @param string $page the page URI
      */
     public function amOnPage(string $page): void
     {
@@ -896,7 +897,7 @@ class Yii2 extends Framework implements ActiveRecord, MultiSession, PartedModule
      */
     public function _backupSession(): array
     {
-        if (isset(Yii::$app) && Yii::$app->session->useCustomStorage) {
+        if (isset(Yii::$app) && Yii::$app->has('session', true) && Yii::$app->session->useCustomStorage) {
             throw new ModuleException($this, "Yii2 MultiSession only supports the default session backend.");
         }
         return [

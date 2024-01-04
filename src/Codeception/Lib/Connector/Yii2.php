@@ -11,10 +11,10 @@ use Symfony\Component\BrowserKit\Response;
 use Yii;
 use yii\base\ExitException;
 use yii\base\Security;
+use yii\base\UserException;
 use yii\mail\MessageInterface;
 use yii\web\Application;
 use yii\web\ErrorHandler;
-use yii\web\HttpException;
 use yii\web\Request;
 use yii\web\Response as YiiResponse;
 
@@ -40,7 +40,7 @@ class Yii2 extends Client
     /**
      * Clean the response object by resetting specific properties via its' `clear()` method.
      * This will keep behaviors / event handlers, but could inadvertently leave some changes intact.
-     * @see \Yii\web\Response::clear()
+     * @see \yii\web\Response::clear()
      */
     const CLEAN_CLEAR = 'clear';
 
@@ -333,7 +333,7 @@ class Yii2 extends Client
         $_SERVER['REQUEST_METHOD'] = strtoupper($request->getMethod());
         $_SERVER['QUERY_STRING'] = (string)$queryString;
 
-        parse_str($queryString, $params);
+        parse_str($queryString ?: '', $params);
         foreach ($params as $k => $v) {
             $_GET[$k] = $v;
         }
@@ -372,7 +372,7 @@ class Yii2 extends Client
             $app->trigger($app::EVENT_AFTER_REQUEST);
             $response->send();
         } catch (\Exception $e) {
-            if ($e instanceof HttpException) {
+            if ($e instanceof UserException) {
                 // Don't discard output and pass exception handling to Yii to be able
                 // to expect error response codes in tests.
                 $app->errorHandler->discardExistingOutput = false;
@@ -480,7 +480,7 @@ class Yii2 extends Client
         return $config;
     }
 
-    public function restart()
+    public function restart(): void
     {
         parent::restart();
         $this->resetApplication();
